@@ -18,9 +18,7 @@ public class UnityChanUnit : Unit
     private AnimatorStateInfo currentBaseState;
 
     static int idleState = Animator.StringToHash("Base Layer.Idle");
-    static int locoState = Animator.StringToHash("Base Layer.Locomotion");
-    static int jumpState = Animator.StringToHash("Base Layer.Jump");
-    static int restState = Animator.StringToHash("Base Layer.Rest");
+    static int locoState = Animator.StringToHash("Base Layer.Run");
 
     public override void Initialize()
     {
@@ -32,8 +30,8 @@ public class UnityChanUnit : Unit
         transform.position += new Vector3(0, -0.1f, 0);
         animator = GetComponent<Animator>();
         animator.speed = 1;
-        animator.Play("Idle", 0);
         currentBaseState = animator.GetCurrentAnimatorStateInfo(0);
+        Debug.Log(1/2);
     }
 
     public override void OnUnitDeselected()
@@ -43,14 +41,29 @@ public class UnityChanUnit : Unit
         //transform.localScale = new Vector3(1,1,1);
     }
 
-    public override void MarkAsAttacking(Unit other)
-    {
+    public override void MarkAsAttacking(Unit other) {
+        Rotate(other.Cell);
+        List<string> attacks = new List<string>();
+
+        attacks.Add("Jab");
+        attacks.Add("Hikick");
+
+        float select = Random.value();
+        string s = "";
+        for(int i = 0; i < attacks.Count; i++) {
+            if (select >= i/attacks.Count && select < (i + 1)/attacks.Count) {
+                s = attacks[i];
+            }
+        }
+        animator.setTrigger(s);
     }
     public override void MarkAsDefending(Unit other)
     {
+        animator.setTrigger("DamageDown");
     }
     public override void MarkAsDestroyed()
     {
+        animator.setBool("Dead");
     }
 
     public override void MarkAsFriendly()
@@ -73,9 +86,9 @@ public class UnityChanUnit : Unit
     // Update is called once per frame
     void Update () {
         if (isMoving) {
-            animator.SetFloat("Speed", MovementSpeed);
+            animator.SetBool("Run", true);
         } else {
-            animator.SetFloat("Speed", 0);
+            animator.SetBool("Run", false);
         }
     }
 
