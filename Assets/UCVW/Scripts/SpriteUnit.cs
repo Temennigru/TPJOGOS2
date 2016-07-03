@@ -11,11 +11,14 @@ public class SpriteUnit : Unit
 
     private Coroutine PulseCoroutine;
 
+    protected SpriteController controller;
+
     public override void Initialize()
     {
         base.Initialize();
         transform.position += new Vector3(0, 0, -0.1f);
         is3DSprite = true;
+        controller = GetComponent<SpriteController>();
     }
 
     public override void OnUnitDeselected()
@@ -27,7 +30,8 @@ public class SpriteUnit : Unit
 
     public override void MarkAsAttacking(Unit other)
     {
-        StartCoroutine(Jerk(other));
+        //StartCoroutine(Jerk(other));
+        Rotate(other.Cell);
     }
     public override void MarkAsDefending(Unit other)
     {

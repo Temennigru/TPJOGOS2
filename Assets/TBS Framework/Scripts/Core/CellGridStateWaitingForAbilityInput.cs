@@ -10,36 +10,31 @@ class CellGridStateWaitingForAbilityInput : CellGridState
     private Cell _unitCell;
 
 
-    public CellGridStateWaitingForAbilityInput(CellGrid cellGrid, Unit unit) : base(cellGrid)
-    {
-        _unit = unit;
+
+    public CellGridStateWaitingForAbilityInput(CellGrid cellGrid/*, Ability ability*/) : base(cellGrid) {
+        //_unit = unit;
         _pathsInRange = new List<Cell>();
         _unitsInRange = new List<Unit>();
     }
 
-    public override void OnCellClicked(Cell cell)
-    {
-        if (_unit.isMoving)
+    public override void OnCellClicked(Cell cell) {
+        if (_unit.isMoving) {
             return;
-        if(cell.IsTaken)
-        {
+        }
+        if(cell.IsTaken) {
             _cellGrid.CellGridState = new CellGridStateWaitingForInput(_cellGrid);
             return;
         }
-            
-        if(!_pathsInRange.Contains(cell))
-        {
-            _cellGrid.CellGridState = new CellGridStateWaitingForInput(_cellGrid);
-        }
-        else
+
+        if(_pathsInRange.Contains(cell))
         {
             var path = _unit.FindPath(_cellGrid.Cells, cell);
             _unit.Move(cell,path);
             _cellGrid.CellGridState = new CellGridStateUnitSelected(_cellGrid, _unit);
         }
     }
-    public override void OnUnitClicked(Unit unit)
-    {
+
+    public override void OnUnitClicked(Unit unit) {
         if (unit.Equals(_unit) || unit.isMoving)
             return;
 
@@ -111,7 +106,7 @@ class CellGridStateWaitingForAbilityInput : CellGridState
                 _unitsInRange.Add(currentUnit);
             }
         }
-        
+
         if (_unitCell.GetNeighbours(_cellGrid.Cells).FindAll(c => c.MovementCost <= _unit.MovementPoints).Count == 0 
             && _unitsInRange.Count == 0)
             _unit.SetState(new UnitStateMarkedAsFinished(_unit));

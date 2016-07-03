@@ -3,30 +3,17 @@
 class Cube : Square
 {
     private Renderer rend;
-    public Shader shader_unselected;
-    public Shader shader_selected;
-    public Shader shader_path;
-    public Shader shader_reachable;
+    public Material unselected;
+    public Material selected;
+    public Material path;
+    public Material reachable;
 
 
     public void Start()
     {
         rend = GetComponent<Renderer>();
-        if (shader_unselected == null) {
-            shader_unselected = Shader.Find("Sprites/Diffuse");
-        }
-        if (shader_selected == null) {
-            shader_selected = Shader.Find("Unlit/Color");
-        }
-        if (shader_path == null) {
-            shader_path = Shader.Find("Unlit/Color");
-        }
-        if (shader_reachable == null) {
-            shader_reachable = Shader.Find("Unlit/Color");
-        }
 
-
-        rend.material.shader = shader_unselected;
+        rend.material = unselected;
     }
 
     public override Vector3 GetCellDimensions()
@@ -36,29 +23,22 @@ class Cube : Square
 
     public override void MarkAsHighlighted()
     {
-        rend.material.color = new Color(0.1f, 0.1f, 0.1f); ;
-        //rend.material.color = Color.green;
-        rend.material.shader = shader_selected;
+        rend.material = selected;
     }
 
     public override void MarkAsPath()
     {
-        rend.material.color = new Color(0.1f, 0.1f, 0.1f); ;
-        rend.material.color = Color.green;
-        rend.material.shader = shader_path;
+        rend.material = path;
     }
 
     public override void MarkAsReachable()
     {
-        rend.material.color = new Color(0.1f, 0.1f, 0.1f); ;
-        rend.material.color = Color.yellow;
-        rend.material.shader = shader_reachable;
+        rend.material = reachable;
     }
 
     public override void UnMark()
     {
-        rend.material.color = Color.white;
-        rend.material.shader = shader_unselected;
+        rend.material = unselected;
     }
 }
 

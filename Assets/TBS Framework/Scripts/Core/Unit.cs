@@ -74,7 +74,7 @@ public abstract class Unit : MonoBehaviour
     /// <summary>
     /// Indicates what stage of the animation is playing.
     /// </summary>
-    public bool isSpinning { get; set; }
+    public bool isRotating { get; set; }
 
 
     /// <summary>
@@ -97,7 +97,7 @@ public abstract class Unit : MonoBehaviour
         TotalMovementPoints = MovementPoints;
         TotalActionPoints = ActionPoints;
         isMoving = false;
-        isSpinning = false;
+        isRotating = false;
         is3DSprite = false;
     }
 
@@ -190,14 +190,13 @@ public abstract class Unit : MonoBehaviour
             return;
 
         MarkAsAttacking(other);
-        ActionPoints--;
-        other.Defend(this, AttackFactor);
+        ActionPoints--;        other.Defend(this, AttackFactor);
 
         if (ActionPoints == 0)
         {
             SetState(new UnitStateMarkedAsFinished(this));
             MovementPoints = 0;
-        }  
+        }
     }
     /// <summary>
     /// Attacking unit calls Defend method on defending unit. 
@@ -224,6 +223,12 @@ public abstract class Unit : MonoBehaviour
             return;
         }
 
+        if (ActionPoints == 0) {
+            return;
+        }
+        
+        ActionPoints--;
+
         var totalMovementCost = path.Sum(h => h.MovementCost);
         if (MovementPoints < totalMovementCost) {
             return;
@@ -247,46 +252,71 @@ public abstract class Unit : MonoBehaviour
         }
     }
 
+
+
     protected virtual IEnumerator MovementAnimation(List<Cell> path) {
 
         isMoving = true;
 
         path.Reverse();
         foreach (var cell in path) {
-            int timeout = 500;
-
-            if (!is3DSprite) {
-                Vector3 target = new Vector3(cell.transform.position.x,transform.position.y,cell.transform.position.z) - transform.position;
-                while (transform.rotation != Quaternion.LookRotation(target) || new Vector2(transform.position.x,transform.position.z) != new Vector2(cell.transform.position.x,cell.transform.position.z)) {
-                    transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, target, Time.deltaTime * MovementSpeed * 4, 0.0f));
-                    transform.position = Vector3.MoveTowards(transform.position, new Vector3(cell.transform.position.x,transform.position.y,cell.transform.position.z), Time.deltaTime * MovementSpeed);
-                    // Give up after # iterations (to fix deadlock issue)
-                    timeout--;
-                    if (timeout <= 0) {
-                        break;
-                    }
-                    yield return 0;
+            int timeout = (int)(200 / MovementSpeed);
+            while (new Vector2(transform.position.x,transform.position.z) != new Vector2(cell.transform.position.x,cell.transform.position.z)) {
+                this.Rotate(cell);
+                //while(isRotating) {yield return 0;}
+                transform.position = Vector3.MoveTowards(transform.position, new Vector3(cell.transform.position.x,transform.position.y,cell.transform.position.z), Time.deltaTime * MovementSpeed);
+                // Give up after # iterations (to fix deadlock issue)
+                timeout--;
+                if (timeout <= 0) {
+                    break;
                 }
-            } else {
-                SpriteController spriteController = (SpriteController) GetComponent("SpriteController");
-                Vector3 target =  new Vector3(cell.transform.position.x,transform.position.y,cell.transform.position.z) - transform.position;
-                target.Normalize();
-                while (spriteController.rotation != target || new Vector2(transform.position.x,transform.position.z) != new Vector2(cell.transform.position.x,cell.transform.position.z)) {
-                    spriteController.LookAt(Vector3.RotateTowards(spriteController.rotation, target, Time.deltaTime * MovementSpeed * 4, 0.0f));
-                    transform.position = Vector3.MoveTowards(transform.position, new Vector3(cell.transform.position.x,transform.position.y,cell.transform.position.z), Time.deltaTime * MovementSpeed);
-                    // Give up after # iterations (to fix deadlock issue)
-                    timeout--;
-                    if (timeout <= 0) {
-                        break;
-                    }
-                    yield return 0;
-                }
+                yield return 0;
             }
+
 
         }
 
         isMoving = false;
     }
+
+
+    public virtual void Rotate(Cell destinationCell) {
+
+        StartCoroutine(RotationAnimation(destinationCell));
+    }
+
+    protected virtual IEnumerator RotationAnimation(Cell destinationCell) {
+        int timeout = (int)(200 / MovementSpeed);
+        isRotating = true;
+
+        if (!is3DSprite) {
+            Vector3 target = new Vector3(destinationCell.transform.position.x,transform.position.y,destinationCell.transform.position.z) - transform.position;
+            while (transform.rotation != Quaternion.LookRotation(target)) {
+                transform.rotation = Quaternion.LookRotation(Vector3.RotateTowards(transform.forward, target, Time.deltaTime * MovementSpeed * 4, 0.0f));
+                // Give up after # iterations (to fix deadlock issue)
+                timeout--;
+                if (timeout <= 0) {
+                    break;
+                }
+                yield return 0;
+            }
+        } else {
+            SpriteController spriteController = (SpriteController) GetComponent("SpriteController");
+            Vector3 target =  new Vector3(destinationCell.transform.position.x,transform.position.y,destinationCell.transform.position.z) - transform.position;
+            target.Normalize();
+            while (spriteController.rotation != target) {
+                spriteController.LookAt(Vector3.RotateTowards(spriteController.rotation, target, Time.deltaTime * MovementSpeed * 4, 0.0f));
+                // Give up after # iterations (to fix deadlock issue)
+                timeout--;
+                if (timeout <= 0) {
+                    break;
+                }
+                yield return 0;
+            }
+        }
+        isRotating = false;
+    }
+
 
     ///<summary>
     /// Method indicates if unit is capable of moving to cell given as parameter.

@@ -12,12 +12,15 @@ public class SpriteController : MonoBehaviour {
 	void Start () {
         animator = GetComponent<Animator>();
         rotation = Vector3.forward;
+        rotation.Normalize();
         angle = 0;
 	}
 
     public void LookAt(Vector3 location) {
         // Sprite can only rotate in y direction
+
         rotation = location;
+        rotation.Normalize();
     }
 
     private void UpdateRotation() {
@@ -36,7 +39,7 @@ public class SpriteController : MonoBehaviour {
 
 
         transform.LookAt(Camera.main.transform.position, Camera.main.transform.up);
-        transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+        //transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
     }
 
 

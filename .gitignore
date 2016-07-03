@@ -1,0 +1,4 @@
+*.meta
+*Standard\ Assets/*
+*.csproj
+*.sln

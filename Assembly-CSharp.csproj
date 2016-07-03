@@ -119,6 +119,7 @@
      <Compile Include="Assets\UCVW\Scripts\ShowMeshBounds.cs" />
      <Compile Include="Assets\UCVW\Scripts\SpriteController.cs" />
      <Compile Include="Assets\UCVW\Scripts\SpriteUnit.cs" />
+     <Compile Include="Assets\UCVW\Scripts\UCVWGUIController.cs" />
      <Compile Include="Assets\UCVW\Scripts\UnityChanControlScriptWithRgidBodyDesuKa.cs" />
      <Compile Include="Assets\UCVW\Scripts\UnityChanUnit.cs" />
      <Compile Include="Assets\UnityChan\Scripts\CameraController.cs" />

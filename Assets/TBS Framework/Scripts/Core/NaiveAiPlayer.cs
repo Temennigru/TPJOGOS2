@@ -98,7 +98,7 @@ public class NaiveAiPlayer : Player
                 }
             }//If the path cost is greater than unit movement points, move as far as possible.
            
-            foreach (var enemyUnit in enemyUnits)
+            /*foreach (var enemyUnit in enemyUnits)
             {
                 var enemyCell = enemyUnit.Cell;
                 if (unit.IsUnitAttackable(enemyUnit,unit.Cell))
@@ -107,8 +107,8 @@ public class NaiveAiPlayer : Player
                     yield return new WaitForSeconds(0.5f);
                     break;
                 }
-            }//Look for enemies in range and attack.
-        }    
+            }//Look for enemies in range and attack.*/
+        }
         _cellGrid.EndTurn();     
     }
 }

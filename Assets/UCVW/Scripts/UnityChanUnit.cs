@@ -33,6 +33,7 @@ public class UnityChanUnit : Unit
         animator = GetComponent<Animator>();
         animator.speed = 1;
         animator.Play("Idle", 0);
+        currentBaseState = animator.GetCurrentAnimatorStateInfo(0);
     }
 
     public override void OnUnitDeselected()
@@ -72,9 +73,7 @@ public class UnityChanUnit : Unit
     // Update is called once per frame
     void Update () {
         if (isMoving) {
-            if (currentBaseState.nameHash != locoState) {
-                animator.SetFloat("Speed", MovementSpeed);
-            }
+            animator.SetFloat("Speed", MovementSpeed);
         } else {
             animator.SetFloat("Speed", 0);
         }

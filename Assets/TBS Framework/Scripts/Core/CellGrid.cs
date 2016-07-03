@@ -123,19 +123,20 @@ public class CellGrid : MonoBehaviour
     /// </summary>
     public void StartGame()
     {
-        if(GameStarted != null)
+        if(GameStarted != null) {
             GameStarted.Invoke(this, new EventArgs());
+        }
 
         Units.FindAll(u => u.PlayerNumber.Equals(CurrentPlayerNumber)).ForEach(u => { u.OnTurnStart(); });
         Players.Find(p => p.PlayerNumber.Equals(CurrentPlayerNumber)).Play(this);
     }
+
     /// <summary>
     /// Method makes turn transitions. It is called by player at the end of his turn.
     /// </summary>
     public void EndTurn()
     {
-        if (Units.Select(u => u.PlayerNumber).Distinct().Count() == 1)
-        {
+        if (Units.Select(u => u.PlayerNumber).Distinct().Count() == 1) {
             return;
         }
         CellGridState = new CellGridStateTurnChanging(this);
@@ -148,10 +149,11 @@ public class CellGrid : MonoBehaviour
             CurrentPlayerNumber = (CurrentPlayerNumber + 1)%NumberOfPlayers;
         }//Skipping players that are defeated.
 
-        if (TurnEnded != null)
+        if (TurnEnded != null) {
             TurnEnded.Invoke(this, new EventArgs());
+        }
 
         Units.FindAll(u => u.PlayerNumber.Equals(CurrentPlayerNumber)).ForEach(u => { u.OnTurnStart(); });
-        Players.Find(p => p.PlayerNumber.Equals(CurrentPlayerNumber)).Play(this);     
+        Players.Find(p => p.PlayerNumber.Equals(CurrentPlayerNumber)).Play(this);
     }
 }
