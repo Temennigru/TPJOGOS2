@@ -35,7 +35,8 @@ public class SpriteUnit : Unit
     }
     public override void MarkAsDefending(Unit other)
     {
-        StartCoroutine(Glow(new Color(1, 0, 0, 0.5f), 1));
+        //StartCoroutine(Glow(new Color(1, 0, 0, 0.5f), 1));
+        SetColor(new Color(1,0.8f,0.8f));
     }
     public override void MarkAsDestroyed()
     {
@@ -104,7 +105,7 @@ public class SpriteUnit : Unit
     }
     public override void MarkAsReachableEnemy()
     {
-        SetColor(new Color(1,0.8f,0.8f));
+        //SetColor(new Color(1,0.8f,0.8f));
     }
     public override void MarkAsSelected()
     {

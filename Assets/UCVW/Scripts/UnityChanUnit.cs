@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using System.Collections.Generic;
 
 [RequireComponent(typeof (Animator))]
 [RequireComponent(typeof (CapsuleCollider))]
@@ -16,10 +17,10 @@ public class UnityChanUnit : Unit
     private float orgColHight;
     private Vector3 orgVectColCenter;
     private AnimatorStateInfo currentBaseState;
+    private UnityChanSoundPlayer soundPlayer;
 
     static int idleState = Animator.StringToHash("Base Layer.Idle");
     static int locoState = Animator.StringToHash("Base Layer.Run");
-
     public override void Initialize()
     {
         base.Initialize();
@@ -31,7 +32,10 @@ public class UnityChanUnit : Unit
         animator = GetComponent<Animator>();
         animator.speed = 1;
         currentBaseState = animator.GetCurrentAnimatorStateInfo(0);
-        Debug.Log(1/2);
+        soundPlayer = GetComponent<UnityChanSoundPlayer>();
+
+
+        abilities.Add(GetComponent<MonkDashAbility>());
     }
 
     public override void OnUnitDeselected()
@@ -43,27 +47,36 @@ public class UnityChanUnit : Unit
 
     public override void MarkAsAttacking(Unit other) {
         Rotate(other.Cell);
-        List<string> attacks = new List<string>();
+        if(!muteActions) {
+            List<string> attacks = new List<string>();
 
-        attacks.Add("Jab");
-        attacks.Add("Hikick");
+            attacks.Add("Jab");
+            attacks.Add("Hikick");
 
-        float select = Random.value();
-        string s = "";
-        for(int i = 0; i < attacks.Count; i++) {
-            if (select >= i/attacks.Count && select < (i + 1)/attacks.Count) {
-                s = attacks[i];
+            float select = Random.value;
+            string s = "";
+            for(int i = 0; i < attacks.Count; i++) {
+                if (select >= (i + 0.0)/attacks.Count && select < (i + 1.0)/attacks.Count) {
+                    s = attacks[i];
+                    break;
+                }
             }
+            select = Random.value;
+            int sound = select > 0.5 ? 0 : 1;
+            animator.SetTrigger(s);
+            soundPlayer.Play(sound);
         }
-        animator.setTrigger(s);
     }
     public override void MarkAsDefending(Unit other)
     {
-        animator.setTrigger("DamageDown");
+        if(!muteActions) {
+            soundPlayer.Play(3);
+            animator.SetTrigger("Damage");
+        }
     }
     public override void MarkAsDestroyed()
     {
-        animator.setBool("Dead");
+        animator.SetBool("Dead", true);
     }
 
     public override void MarkAsFriendly()
@@ -85,8 +98,11 @@ public class UnityChanUnit : Unit
 
     // Update is called once per frame
     void Update () {
+        currentBaseState = animator.GetCurrentAnimatorStateInfo(0);
         if (isMoving) {
-            animator.SetBool("Run", true);
+            if(!muteActions) {
+                animator.SetBool("Run", true);
+            }
         } else {
             animator.SetBool("Run", false);
         }

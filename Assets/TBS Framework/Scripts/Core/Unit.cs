@@ -38,6 +38,7 @@ public abstract class Unit : MonoBehaviour
     public int TotalHitPoints { get; private set; }
     protected int TotalMovementPoints;
     protected int TotalActionPoints;
+    public List<Ability> abilities {get; private set;}
 
     /// <summary>
     /// Cell that the unit is currently occupying.
@@ -76,6 +77,8 @@ public abstract class Unit : MonoBehaviour
     /// </summary>
     public bool isRotating { get; set; }
 
+    public bool muteActions { get; set; }
+
 
     /// <summary>
     /// Indicates whether to use sprite angles.
@@ -99,6 +102,8 @@ public abstract class Unit : MonoBehaviour
         isMoving = false;
         isRotating = false;
         is3DSprite = false;
+        muteActions = false;
+        abilities = new List<Ability>();
     }
 
     protected virtual void OnMouseDown()
@@ -180,17 +185,24 @@ public abstract class Unit : MonoBehaviour
     /// <summary>
     /// Method deals damage to unit given as parameter.
     /// </summary>
-    public virtual void DealDamage(Unit other)
+    public virtual void DealDamage(Unit other) {
+        DealDamage(other, false);
+    }
+    public virtual void DealDamage(Unit other, bool ignoreActionPoints)
     {
         if (isMoving)
             return;
-        if (ActionPoints == 0)
+        if (ActionPoints == 0 && !ignoreActionPoints)
             return;
         if (!IsUnitAttackable(other, Cell))
             return;
 
         MarkAsAttacking(other);
-        ActionPoints--;        other.Defend(this, AttackFactor);
+        if (!ignoreActionPoints) {
+            ActionPoints--;
+        }
+
+        other.Defend(this, AttackFactor);
 
         if (ActionPoints == 0)
         {
@@ -217,7 +229,11 @@ public abstract class Unit : MonoBehaviour
         }
     }
 
-    public virtual void Move(Cell destinationCell, List<Cell> path)
+    public virtual void Move(Cell destinationCell, List<Cell> path) {
+        Move(destinationCell, path, -1);
+    }
+
+    public virtual void Move(Cell destinationCell, List<Cell> path, int range)
     {
         if (isMoving) {
             return;
@@ -230,11 +246,13 @@ public abstract class Unit : MonoBehaviour
         ActionPoints--;
 
         var totalMovementCost = path.Sum(h => h.MovementCost);
-        if (MovementPoints < totalMovementCost) {
+        if (MovementPoints < totalMovementCost && range == -1) {
             return;
         }
 
-        MovementPoints -= totalMovementCost;
+        if (range == -1) {
+            MovementPoints -= totalMovementCost;
+        }
 
         Cell.IsTaken = false;
         Cell = destinationCell;
@@ -335,12 +353,15 @@ public abstract class Unit : MonoBehaviour
     /// <summary>
     /// Method returns all cells that the unit is capable of moving to.
     /// </summary>
-    public List<Cell> GetAvailableDestinations(List<Cell> cells)
+    public List<Cell> GetAvailableDestinations(List<Cell> cells, int range = -1)
     {
+        if (range == -1) {
+            range = MovementPoints;
+        }
         var ret = new List<Cell>();
-        var cellsInMovementRange = cells.FindAll(c => IsCellMovableTo(c) && c.GetDistance(Cell) <= MovementPoints);
+        var cellsInMovementRange = cells.FindAll(c => IsCellMovableTo(c) && c.GetDistance(Cell) <= range);
 
-        var traversableCells = cells.FindAll(c => IsCellTraversable(c) && c.GetDistance(Cell) <= MovementPoints);
+        var traversableCells = cells.FindAll(c => IsCellTraversable(c) && c.GetDistance(Cell) <= range);
         traversableCells.Add(Cell);
 
         foreach (var cellInRange in cellsInMovementRange)
@@ -349,28 +370,34 @@ public abstract class Unit : MonoBehaviour
 
             var path = FindPath(traversableCells, cellInRange);
             var pathCost = path.Sum(c => c.MovementCost);
-            if (pathCost > 0 && pathCost <= MovementPoints)
+            if (pathCost > 0 && pathCost <= range)
                 ret.AddRange(path);
         }
         return ret.FindAll(IsCellMovableTo).Distinct().ToList();
     }
 
-    public List<Cell> FindPath(List<Cell> cells, Cell destination)
+    public List<Cell> FindPath(List<Cell> cells, Cell destination, bool checkOccupied = false)
     {
-        return _pathfinder.FindPath(GetGraphEdges(cells), Cell, destination);
+        return _pathfinder.FindPath(GetGraphEdges(cells, checkOccupied), Cell, destination);
     }
     /// <summary>
     /// Method returns graph representation of cell grid for pathfinding.
     /// </summary>
-    protected virtual Dictionary<Cell, Dictionary<Cell, int>> GetGraphEdges(List<Cell> cells)
+    protected virtual Dictionary<Cell, Dictionary<Cell, int>> GetGraphEdges(List<Cell> cells, bool checkOccupied = false)
     {
         Dictionary<Cell, Dictionary<Cell, int>> ret = new Dictionary<Cell, Dictionary<Cell, int>>();
         foreach (var cell in cells)
         {
-            if (IsCellTraversable(cell) || cell.Equals(Cell))
+            if (IsCellTraversable(cell) || cell.Equals(Cell) || checkOccupied)
             {
                 ret[cell] = new Dictionary<Cell, int>();
-                foreach (var neighbour in cell.GetNeighbours(cells).FindAll(IsCellTraversable))
+                List<Cell> neighbours;
+                if(checkOccupied) {
+                    neighbours = cell.GetNeighbours(cells);
+                } else {
+                    neighbours = cell.GetNeighbours(cells).FindAll(IsCellTraversable);
+                }
+                foreach (var neighbour in neighbours)
                 {
                     ret[cell][neighbour] = neighbour.MovementCost;
                 }

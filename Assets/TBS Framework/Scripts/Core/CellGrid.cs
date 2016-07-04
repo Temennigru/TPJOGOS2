@@ -80,6 +80,8 @@ public class CellGrid : MonoBehaviour
             Units = unitGenerator.SpawnUnits(Cells);
             foreach (var unit in Units)
             {
+                unit.UnitHighlighted += OnUnitHighlighted;
+                unit.UnitDehighlighted += OnUnitDehighlighted;
                 unit.UnitClicked += OnUnitClicked;
                 unit.UnitDestroyed += OnUnitDestroyed;
             }
@@ -103,6 +105,14 @@ public class CellGrid : MonoBehaviour
         CellGridState.OnCellClicked(sender as Cell);
     }
 
+    private void OnUnitDehighlighted(object sender, EventArgs e)
+    {
+        CellGridState.OnUnitDeselected(sender as Unit);
+    }
+    private void OnUnitHighlighted(object sender, EventArgs e)
+    {
+        CellGridState.OnUnitSelected(sender as Unit);
+    } 
     private void OnUnitClicked(object sender, EventArgs e)
     {
         CellGridState.OnUnitClicked(sender as Unit);

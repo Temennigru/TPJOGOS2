@@ -84,8 +84,10 @@ class CellGridStatePlayerTurn : CellGridState {
         foreach (var cell in cellsNotInRange) {
             cell.UnMark();
         }
-        foreach (var cell in _pathsInRange) {
-            cell.MarkAsReachable();
+        if(_unit.ActionPoints > 0) {
+            foreach (var cell in _pathsInRange) {
+                cell.MarkAsReachable();
+            }
         }
 
         if (_unit.ActionPoints <= 0) { // Wait for player movement to stop

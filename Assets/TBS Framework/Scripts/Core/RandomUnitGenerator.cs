@@ -19,7 +19,7 @@ class RandomUnitGenerator : MonoBehaviour, IUnitGenerator
         List<Cell> freeCells = cells.FindAll(h => h.GetComponent<Cell>().IsTaken == false);
         freeCells = freeCells.OrderBy(h => _rnd.Next()).ToList();
 
-        for (int i = 0; i < NumberOfPlayers; i++)
+        for (int i = 1; i < NumberOfPlayers; i++)
         {
             for (int j = 0; j < UnitsPerPlayer; j++)
             {

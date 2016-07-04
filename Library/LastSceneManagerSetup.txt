@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/UCVW/Scenes/Example2.unity
+- path: Assets/UCVW/Scenes/Map 1 UCvW.unity
   isLoaded: 1
   isActive: 1

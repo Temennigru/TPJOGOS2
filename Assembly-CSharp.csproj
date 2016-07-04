@@ -47,6 +47,7 @@
   <ItemGroup>
      <Compile Include="Assets\OBJExport\OBJExporter.cs" />
      <Compile Include="Assets\TBS Framework\Scripts\Core\AStarPathfinding.cs" />
+     <Compile Include="Assets\TBS Framework\Scripts\Core\Ability.cs" />
      <Compile Include="Assets\TBS Framework\Scripts\Core\BreadthFirstSearch.cs" />
      <Compile Include="Assets\TBS Framework\Scripts\Core\Buff.cs" />
      <Compile Include="Assets\TBS Framework\Scripts\Core\Cell.cs" />
@@ -114,11 +115,13 @@
      <Compile Include="Assets\UCVW\Scripts\Cube.cs" />
      <Compile Include="Assets\UCVW\Scripts\DrawCube.cs" />
      <Compile Include="Assets\UCVW\Scripts\IsometricCamera.cs" />
+     <Compile Include="Assets\UCVW\Scripts\MonkDashAbility.cs" />
      <Compile Include="Assets\UCVW\Scripts\ShowMeshBounds.cs" />
      <Compile Include="Assets\UCVW\Scripts\SpriteController.cs" />
      <Compile Include="Assets\UCVW\Scripts\SpriteUnit.cs" />
      <Compile Include="Assets\UCVW\Scripts\UCVWGUIController.cs" />
      <Compile Include="Assets\UCVW\Scripts\UnityChanControlScriptWithRgidBodyDesuKa.cs" />
+     <Compile Include="Assets\UCVW\Scripts\UnityChanSoundPlayer.cs" />
      <Compile Include="Assets\UCVW\Scripts\UnityChanUnit.cs" />
      <Compile Include="Assets\UCVW\UnityChan\FightingUnityChan_FreeAsset\FightingUnityChan_FreeAsset\Scripts\CameraController.cs" />
      <Compile Include="Assets\UCVW\UnityChan\FightingUnityChan_FreeAsset\FightingUnityChan_FreeAsset\Scripts\IdleChanger.cs" />

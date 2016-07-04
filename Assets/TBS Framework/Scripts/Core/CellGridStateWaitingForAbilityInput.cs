@@ -1,52 +1,68 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 class CellGridStateWaitingForAbilityInput : CellGridState
 {
     private Unit _unit;
     private List<Cell> _pathsInRange;
     private List<Unit> _unitsInRange;
+    private Ability _ability;
+    private HumanPlayer _player;
 
     private Cell _unitCell;
 
 
 
-    public CellGridStateWaitingForAbilityInput(CellGrid cellGrid/*, Ability ability*/) : base(cellGrid) {
-        //_unit = unit;
+    public CellGridStateWaitingForAbilityInput(CellGrid cellGrid, HumanPlayer player, Unit unit, Ability ability) : base(cellGrid) {
+        _unit = unit;
         _pathsInRange = new List<Cell>();
         _unitsInRange = new List<Unit>();
+        _ability = ability;
+        _player = player;
     }
 
     public override void OnCellClicked(Cell cell) {
-        if (_unit.isMoving) {
-            return;
-        }
-        if(cell.IsTaken) {
-            _cellGrid.CellGridState = new CellGridStateWaitingForInput(_cellGrid);
-            return;
-        }
+        if (!_ability.CellTargetable) {return;}
 
-        if(_pathsInRange.Contains(cell))
-        {
+        if(_pathsInRange.Contains(cell) && _unit.ActionPoints > 0) {
             var path = _unit.FindPath(_cellGrid.Cells, cell);
-            _unit.Move(cell,path);
-            _cellGrid.CellGridState = new CellGridStateUnitSelected(_cellGrid, _unit);
+            _ability.activate(cell,path);
+            _cellGrid.CellGridState = new CellGridStatePlayerTurn(_cellGrid, _player, _unit);
         }
     }
 
-    public override void OnUnitClicked(Unit unit) {
-        if (unit.Equals(_unit) || unit.isMoving)
-            return;
+    public override void OnUnitDeselected(Unit unit)
+    {
+        base.OnUnitDeselected(unit);
 
-        if (_unitsInRange.Contains(unit) && _unit.ActionPoints > 0)
+        foreach (var _cell in _cellGrid.Cells)
         {
-            _unit.DealDamage(unit);
-            _cellGrid.CellGridState = new CellGridStateUnitSelected(_cellGrid, _unit);
+            _cell.UnMark();
         }
+    }
 
-        if (unit.PlayerNumber.Equals(_unit.PlayerNumber))
+    public override void OnUnitSelected(Unit unit)
+    {
+        base.OnUnitSelected(unit);
+        if (!_ability.UnitTargetable) {return;}
+        if (!_unitsInRange.Contains(unit)) {return;}
+
+        var path = _unit.FindPath(_cellGrid.Cells, unit.Cell, true);
+
+        foreach (var _cell in path)
         {
-            _cellGrid.CellGridState = new CellGridStateUnitSelected(_cellGrid, unit);
+            _cell.MarkAsReachable();
+        }
+        unit.Cell.MarkAsPath();
+    }
+    public override void OnUnitClicked(Unit unit) {
+        if (!_ability.UnitTargetable) {return;}
+
+        if (_unitsInRange.Contains(unit) && _unit.ActionPoints > 0) {
+            var path = _unit.FindPath(_cellGrid.Cells, unit.Cell, true);
+            _ability.activate(unit, path);
+            _cellGrid.CellGridState = new CellGridStatePlayerTurn(_cellGrid, _player, _unit);
         }
 
     }
@@ -54,11 +70,7 @@ class CellGridStateWaitingForAbilityInput : CellGridState
     {
         base.OnCellDeselected(cell);
 
-        foreach (var _cell in _pathsInRange)
-        {
-            _cell.MarkAsReachable();
-        }
-        foreach (var _cell in _cellGrid.Cells.Except(_pathsInRange))
+        foreach (var _cell in _cellGrid.Cells)
         {
             _cell.UnMark();
         }
@@ -66,11 +78,14 @@ class CellGridStateWaitingForAbilityInput : CellGridState
     public override void OnCellSelected(Cell cell)
     {
         base.OnCellSelected(cell);
+        if (!_ability.CellTargetable) {return;}
+
         if (!_pathsInRange.Contains(cell)) return;
+
         var path = _unit.FindPath(_cellGrid.Cells, cell);
         foreach (var _cell in path)
         {
-            _cell.MarkAsPath();
+            _cell.MarkAsReachable();
         }
     }
 
@@ -78,20 +93,8 @@ class CellGridStateWaitingForAbilityInput : CellGridState
     {
         base.OnStateEnter();
 
-        _unit.OnUnitSelected();
         _unitCell = _unit.Cell;
-
-        _pathsInRange = _unit.GetAvailableDestinations(_cellGrid.Cells);
-        var cellsNotInRange = _cellGrid.Cells.Except(_pathsInRange);
-
-        foreach (var cell in cellsNotInRange)
-        {
-            cell.UnMark();
-        }
-        foreach (var cell in _pathsInRange)
-        {
-            cell.MarkAsReachable();
-        }
+        _pathsInRange = _unit.GetAvailableDestinations(_cellGrid.Cells, _ability.Range);
 
         if (_unit.ActionPoints <= 0) return;
 
@@ -100,25 +103,14 @@ class CellGridStateWaitingForAbilityInput : CellGridState
             if (currentUnit.PlayerNumber.Equals(_unit.PlayerNumber))
                 continue;
         
-            if (_unit.IsUnitAttackable(currentUnit,_unit.Cell))
-            {
+            if (_unit.Cell.GetDistance(currentUnit.Cell) <= _ability.Range) {
                 currentUnit.SetState(new UnitStateMarkedAsReachableEnemy(currentUnit));
                 _unitsInRange.Add(currentUnit);
             }
         }
-
-        if (_unitCell.GetNeighbours(_cellGrid.Cells).FindAll(c => c.MovementCost <= _unit.MovementPoints).Count == 0 
-            && _unitsInRange.Count == 0)
-            _unit.SetState(new UnitStateMarkedAsFinished(_unit));
     }
     public override void OnStateExit()
     {
-        _unit.OnUnitDeselected();
-        foreach (var unit in _unitsInRange)
-        {
-            if (unit == null) continue;
-            unit.SetState(new UnitStateNormal(unit));
-        }
         foreach (var cell in _cellGrid.Cells)
         {
             cell.UnMark();

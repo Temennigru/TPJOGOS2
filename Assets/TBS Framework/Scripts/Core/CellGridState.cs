@@ -9,6 +9,13 @@ public abstract class CellGridState
         _cellGrid = cellGrid;
     }
 
+    public virtual void OnUnitDeselected(Unit unit)
+    {
+    }
+    public virtual void OnUnitSelected(Unit unit)
+    {
+    }
+
     public virtual void OnUnitClicked(Unit unit)
     { }
     
